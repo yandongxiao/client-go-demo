@@ -28,4 +28,5 @@ func main() {
 	}
 
 	fmt.Println(object.GetUID())
+	object.GetLabels()
 }
