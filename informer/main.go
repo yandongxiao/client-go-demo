@@ -20,9 +20,9 @@ func main() {
 	// 选择使用 WithOptions 的 New 方法是因为：我们希望指定Namespace。
 	factory := informers.NewSharedInformerFactoryWithOptions(clientset, 0, informers.WithNamespace("kube-system"))
 	// 本质是调用 factory 的 InformerFor 方法，创建一个 Informer。
-	deploymentInformer := factory.Apps().V1().Deployments().Informer()
+	podInformer := factory.Core().V1().Pods().Informer()
 
-	deploymentInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+	podInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			fmt.Println("Add Event")
 		},
