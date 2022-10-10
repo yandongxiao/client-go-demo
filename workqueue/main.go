@@ -11,6 +11,8 @@ import (
 )
 
 func main() {
+	log.SetLevel(log.Info)
+
 	// 创建 config 对象
 	config, err := clientcmd.BuildConfigFromFlags("", clientcmd.RecommendedHomeFile)
 	if err != nil {
