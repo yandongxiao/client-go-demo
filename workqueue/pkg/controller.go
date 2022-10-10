@@ -2,18 +2,18 @@ package pkg
 
 import (
 	"github.com/google/martian/log"
-	v12 "k8s.io/client-go/informers/core/v1"
-	v1beta12 "k8s.io/client-go/informers/extensions/v1beta1"
+	v1coreinformer "k8s.io/client-go/informers/core/v1"
+	v1networkinginformer "k8s.io/client-go/informers/networking/v1"
 	"k8s.io/client-go/kubernetes"
-	v1 "k8s.io/client-go/listers/core/v1"
-	"k8s.io/client-go/listers/extensions/v1beta1"
+	v1corelister "k8s.io/client-go/listers/core/v1"
+	v1networkinglister "k8s.io/client-go/listers/networking/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
 type Controller struct {
 	clientset     *kubernetes.Clientset
-	serviceLister v1.ServiceLister
-	ingressLister v1beta1.IngressLister
+	serviceLister v1corelister.ServiceLister
+	ingressLister v1networkinglister.IngressLister
 }
 
 func (c *Controller) addService(obj interface{}) {
@@ -37,8 +37,8 @@ func (c *Controller) Run(stopCh chan struct{}) {
 }
 
 func NewController(clientset *kubernetes.Clientset,
-	serviceInformer v12.ServiceInformer,
-	ingressInformer v1beta12.IngressInformer) *Controller {
+	serviceInformer v1coreinformer.ServiceInformer,
+	ingressInformer v1networkinginformer.IngressInformer) *Controller {
 
 	c := &Controller{
 		clientset:     clientset,

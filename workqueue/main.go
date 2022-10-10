@@ -27,7 +27,7 @@ func main() {
 	// 创建 Informer
 	informerFactory := informers.NewSharedInformerFactory(clientset, 0)
 	serviceInformer := informerFactory.Core().V1().Services()
-	ingressInformer := informerFactory.Extensions().V1beta1().Ingresses()
+	ingressInformer := informerFactory.Networking().V1().Ingresses()
 
 	// 创建 Controller
 	stopCh := make(chan struct{})
