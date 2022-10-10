@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"time"
 
-	"github.com/google/martian/log"
 	v1core "k8s.io/api/core/v1"
 	v1networking "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/apimachinery/pkg/util/wait"
 	v1coreinformer "k8s.io/client-go/informers/core/v1"
 	v1networkinginformer "k8s.io/client-go/informers/networking/v1"
 	"k8s.io/client-go/kubernetes"
@@ -54,10 +55,9 @@ func (c *Controller) deleteIngress(obj interface{}) {
 		return
 	}
 
-	// 获取OwnerReference
+	// 获取OwnerReference, 注意对ownerReference的判断
 	ownerReference := metav1.GetControllerOf(ingress)
-	log.Infof("ingress owner Reference: %v", ownerReference.Kind)
-	if ownerReference.Kind != "Service" {
+	if ownerReference == nil || ownerReference.Kind != "Service" {
 		return
 	}
 
@@ -66,21 +66,24 @@ func (c *Controller) deleteIngress(obj interface{}) {
 
 func (c *Controller) Run(stopCh chan struct{}) {
 	for i := 0; i < 5; i++ {
-		go func() {
-			for {
-				c.work()
-			}
-		}()
+		// wait.Until 处理了信号 stopCh
+		// 如果 c.worker 异常退出后， wait.Until 能保证再次启动一个新的 worker
+		go wait.Until(c.worker, time.Minute, stopCh)
 	}
 	<-stopCh
 }
 
-func (c *Controller) work() {
+func (c *Controller) worker() {
+	for c.processNextItem() {
+	}
+}
+
+func (c *Controller) processNextItem() bool {
 	item, shutdown := c.queue.Get()
 	if shutdown {
 		// HandleError 底层到底都做了什么？是否需要 return 语句？
 		runtime.HandleError(fmt.Errorf("workqueue is shutdown"))
-		return
+		return false
 	}
 	defer c.queue.Done(item)
 
@@ -92,6 +95,7 @@ func (c *Controller) work() {
 			c.queue.AddRateLimited(item)
 		}
 	}
+	return true
 }
 
 func (c *Controller) reconcileService(item interface{}) error {
