@@ -109,7 +109,7 @@ func (c *Controller) reconcileService(item interface{}) error {
 		if errors.IsNotFound(err) {
 			// 删除对应的 ingress 对象
 			if err := c.clientset.NetworkingV1().Ingresses(ns).Delete(ctx, name, metav1.DeleteOptions{});
-				err != nil {
+				err != nil && !errors.IsNotFound(err) {
 				return err
 			}
 			return nil
